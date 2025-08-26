@@ -1,0 +1,94 @@
+// prisma/schema.prisma
+
+// Prisma Client generator (keeps your custom output path)
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+// PostgreSQL datasource
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== MODELS =====
+
+model User {
+  id         String     @id @default(cuid())
+  email      String     @unique
+  name       String?
+  role       Role       @default(OWNER)
+  businesses Business[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Business {
+  id         String     @id @default(cuid())
+  name       String
+  slug       String     @unique
+  locale     String     @default("en")
+  currency   String     @default("EUR")
+  ownerId    String
+  owner      User       @relation(fields: [ownerId], references: [id])
+  services   Service[]
+  bookings   Booking[]
+  schedules  Schedule[]
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model Service {
+  id          String    @id @default(cuid())
+  name        String
+  duration    Int       // minutes
+  priceCents  Int       // store price in cents
+  businessId  String
+  business    Business  @relation(fields: [businessId], references: [id])
+  bookings    Booking[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Booking {
+  id                    String         @id @default(cuid())
+  customerName          String
+  customerEmail         String
+  startsAt              DateTime
+  endsAt                DateTime
+  status                BookingStatus  @default(PENDING)
+  serviceId             String
+  service               Service        @relation(fields: [serviceId], references: [id])
+  businessId            String
+  business              Business       @relation(fields: [businessId], references: [id])
+  stripeSessionId       String?
+  stripePaymentIntentId String?
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+}
+
+model Schedule {
+  id         String    @id @default(cuid())
+  businessId String
+  business   Business  @relation(fields: [businessId], references: [id])
+  dayOfWeek  Int       // 0=Sun, 1=Mon, ... 6=Sat
+  openTime   String?   // "09:00"
+  closeTime  String?   // "18:00"
+  isClosed   Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+// ===== ENUMS =====
+
+enum Role {
+  OWNER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  PAID
+  CANCELLED
+}

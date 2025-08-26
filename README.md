@@ -1,36 +1,109 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Reservez
 
-## Getting Started
+Reservez is a SaaS booking platform built with **Next.js 14 (App Router)**, **TypeScript**, **Prisma**, and **Stripe**.  
+It allows business owners (barbers, tutors, nail techs, etc.) to accept bookings online, manage schedules, and get paid instantly.
 
-First, run the development server:
+---
 
-```bash
+## 🚀 Features (MVP)
+
+- Owner dashboard (manage services, schedules, bookings)
+- Public booking pages at `/b/[slug]`
+- Service selection + calendar-based availability
+- Secure payments via Stripe Checkout
+- Automatic status updates via Stripe webhooks
+- PostgreSQL database via Prisma ORM
+- Tailwind CSS for UI styling
+
+---
+
+## 🛠️ Tech Stack
+
+- [Next.js 14](https://nextjs.org/) (App Router, Server Components)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [Prisma](https://www.prisma.io/) + PostgreSQL (Supabase/Neon/local)
+- [Stripe](https://stripe.com/) (Checkout + Webhooks)
+- [NextAuth](https://next-auth.js.org/) (owner authentication, WIP)
+
+---
+
+## 📂 Project Structure
+
+src/app/
+├─ api/
+│ ├─ availability/route.ts # Generate free slots from schedule + bookings
+│ ├─ checkout/route.ts # Create Stripe Checkout sessions
+│ └─ webhooks/stripe/route.ts# Handle Stripe webhook events
+│
+├─ b/[slug]/page.tsx # Public booking page for each business
+│ └─ service-booking.tsx # Client component (select service, slot, pay)
+│
+└─ dashboard/ # Owner dashboard (WIP)
+
+yaml
+Copy
+Edit
+
+
+## ⚙️ Setup
+
+Clone & Install
+git clone https://github.com/yourname/reservez.git
+cd reservez
+npm install
+2. Environment Variables
+Copy .env.example to .env and fill with your values:
+
+
+# Database
+DATABASE_URL=postgresql://user:password@localhost:5432/reservez
+
+# Stripe
+STRIPE_SECRET_KEY=sk_test_xxx
+NEXT_PUBLIC_STRIPE_KEY=pk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+
+# App
+NEXT_PUBLIC_BASE_URL=http://localhost:3000
+3. Database Setup
+
+npx prisma migrate dev --name init
+npx prisma db seed
+npx prisma studio  # optional: view tables
+4. Run Dev Server
+
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Visit: http://localhost:3000
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+🔔 Stripe Webhooks (Dev)
+Install Stripe CLI:
+curl -fsSL https://cli.stripe.com/install.sh | sudo bash
+stripe login
+Forward webhooks to your local dev server:
+stripe listen --forward-to http://localhost:3000/api/webhooks/stripe
+Copy the whsec_xxx secret into .env.
 
-## Learn More
 
-To learn more about Next.js, take a look at the following resources:
+✅ Current Flow
+Owner signs up (dashboard WIP).
+Public page /b/barber-jamal displays services.
+Customer selects service + date + time slot.
+API generates availability from Schedule + existing Bookings.
+Checkout session is created → Stripe Checkout.
+On payment success, Stripe webhook updates booking → PAID.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+📌 Roadmap
+ Owner authentication (NextAuth)
+ Dashboard CRUD for services, schedule, bookings
+ Email notifications (Resend / SendGrid)
+ Calendar sync (Google/Outlook)
+ Multi-language booking pages (EN/FR/NL)
+ Analytics dashboard for owners
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🧑‍💻 Author
+Prince Kyei (@prynskaf)
+Built with ❤️ using Next.js & Stripe.
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
