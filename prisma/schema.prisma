@@ -31,6 +31,7 @@ model Business {
   locale     String     @default("en")
   currency   String     @default("EUR")
   ownerId    String
+  ownerEmail String?    // <-- Add this line
   owner      User       @relation(fields: [ownerId], references: [id])
   services   Service[]
   bookings   Booking[]

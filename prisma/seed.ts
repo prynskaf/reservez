@@ -2,12 +2,12 @@ import { PrismaClient } from "../src/generated/prisma";
 const prisma = new PrismaClient();
 
 async function main() {
-  // 1) Owner
+  // 1) Owner (use the sandbox-approved email)
   const owner = await prisma.user.upsert({
-    where: { email: "jamal@example.com" },
+    where: { email: "prynskaf.12@gmail.com" },
     update: {},
     create: {
-      email: "jamal@example.com",
+      email: "prynskaf.12@gmail.com", // ✅ sandbox-approved email
       name: "Barber Jamal",
       role: "OWNER",
     },
@@ -16,13 +16,16 @@ async function main() {
   // 2) Business
   const business = await prisma.business.upsert({
     where: { slug: "barber-jamal" },
-    update: {},
+    update: {
+      ownerEmail: owner.email,
+    },
     create: {
       name: "Barber Jamal",
       slug: "barber-jamal",
       locale: "en",
       currency: "EUR",
       ownerId: owner.id,
+      ownerEmail: owner.email, // ✅ matches sandbox email
     },
   });
 
@@ -39,8 +42,6 @@ async function main() {
     },
   });
   console.log("Seeded service:", haircut.name);
-
-
 
   await prisma.service.upsert({
     where: { id: "seed-beard" },
@@ -67,7 +68,7 @@ async function main() {
   });
 
   // 4) Simple weekly schedule (Mon–Sat 09:00–18:00, Sun closed)
-  const days = [0,1,2,3,4,5,6]; // Sun..Sat
+  const days = [0, 1, 2, 3, 4, 5, 6]; // Sun..Sat
   for (const d of days) {
     await prisma.schedule.upsert({
       where: { id: `seed-schedule-${d}-${business.id}` },

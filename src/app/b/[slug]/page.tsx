@@ -1,14 +1,37 @@
-// app/b/[slug]/page.tsx
+// src/app/b/[slug]/page.tsx
 import { PrismaClient } from "@/generated/prisma";
 import ServiceBooking from "./service-booking";
 
-
 const prisma = new PrismaClient();
 
-type Props =  { params: { slug: string | string[] } };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ status?: string }>;
+};
 
-export default async function BookingPage({ params }: Props) {
-  const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
+function Banner({ status }: { status?: string }) {
+  if (status === "success") {
+    return (
+      <div className="rounded-md border border-green-300 bg-green-50 text-green-800 px-4 py-3">
+        ✅ Payment received. Your booking is confirmed.
+      </div>
+    );
+  }
+  if (status === "cancelled") {
+    return (
+      <div className="rounded-md border border-yellow-300 bg-yellow-50 text-yellow-800 px-4 py-3">
+        ❌ Payment cancelled. You can try another slot or method.
+      </div>
+    );
+  }
+  return null;
+}
+
+export default async function BookingPage({ params, searchParams }: Props) {
+  // ✅ Await the dynamic APIs
+  const { slug } = await params;
+  const { status } = await searchParams;
+
   const business = await prisma.business.findUnique({
     where: { slug },
     include: { services: { orderBy: { name: "asc" } } },
@@ -25,10 +48,12 @@ export default async function BookingPage({ params }: Props) {
         </p>
       </header>
 
+      <Banner status={status} />
+
       <ServiceBooking
         businessSlug={business.slug}
         currency={business.currency}
-        services={business.services.map(s => ({
+        services={business.services.map((s) => ({
           id: s.id,
           name: s.name,
           duration: s.duration,
